@@ -1,122 +1,169 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import heroImg from './assets/hero.png'
-import './App.css'
+/**
+ * src/App.jsx
+ *
+ * Root component.
+ * Defines the full client-side route tree using React Router v6.
+ *
+ * Route groups:
+ *   PUBLIC     — accessible by anyone (results lookup, school rankings)
+ *   PROTECTED  — requires JWT token (school officer, examiner, admin dashboards)
+ *   ADMIN      — requires KNEC_ADMIN role
+ */
 
-function App() {
-  const [count, setCount] = useState(0)
+import { Routes, Route, Navigate } from 'react-router-dom'
+import { Suspense, lazy } from 'react'
 
-  return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.jsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
+import { useAuth } from './context/AuthContext'
+import PublicLayout   from './layouts/PublicLayout'
+import DashboardLayout from './layouts/DashboardLayout'
+import PageLoader     from './components/common/PageLoader'
+import NotFound       from './pages/NotFound'
 
-      <div className="ticks"></div>
+// ── Lazy-loaded pages (code splitting) ───────────────────────────────────────
 
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
+// Public
+const Home              = lazy(() => import('./pages/Home'))
+const ResultsPage       = lazy(() => import('./pages/ResultsPage'))
+const SchoolRankingsPage = lazy(() => import('./pages/SchoolRankingsPage'))
 
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
-  )
+// Auth
+const LoginPage         = lazy(() => import('./pages/LoginPage'))
+
+// School officer
+const DashboardPage     = lazy(() => import('./pages/dashboard/DashboardPage'))
+const CandidatesPage    = lazy(() => import('./pages/dashboard/CandidatesPage'))
+const CandidateFormPage = lazy(() => import('./pages/dashboard/CandidateFormPage'))
+const CandidateDetailPage = lazy(() => import('./pages/dashboard/CandidateDetailPage'))
+
+// Examiner
+const MarksEntryPage    = lazy(() => import('./pages/dashboard/MarksEntryPage'))
+const ScriptsPage       = lazy(() => import('./pages/dashboard/ScriptsPage'))
+
+// KNEC Admin
+const AdminDashboardPage = lazy(() => import('./pages/admin/AdminDashboardPage'))
+const PublishResultsPage = lazy(() => import('./pages/admin/PublishResultsPage'))
+const AuditLogPage       = lazy(() => import('./pages/admin/AuditLogPage'))
+const AnalyticsPage      = lazy(() => import('./pages/admin/AnalyticsPage'))
+
+
+// ── Route guards ──────────────────────────────────────────────────────────────
+
+/**
+ * Redirects to /login if the user is not authenticated.
+ * Preserves the intended path so after login they return to where they were.
+ */
+function RequireAuth({ children }) {
+  const { user, isLoading } = useAuth()
+  if (isLoading) return <PageLoader />
+  if (!user) return <Navigate to="/login" replace />
+  return children
 }
 
-export default App
+/**
+ * Redirects to /dashboard if the user lacks the required role.
+ */
+function RequireRole({ role, children }) {
+  const { user } = useAuth()
+  if (!user || user.role !== role) {
+    return <Navigate to="/dashboard" replace />
+  }
+  return children
+}
+
+/**
+ * Redirects authenticated users away from the login page.
+ */
+function RedirectIfAuthed({ children }) {
+  const { user, isLoading } = useAuth()
+  if (isLoading) return <PageLoader />
+  if (user) return <Navigate to="/dashboard" replace />
+  return children
+}
+
+
+// ── App ───────────────────────────────────────────────────────────────────────
+
+export default function App() {
+  return (
+    <Suspense fallback={<PageLoader />}>
+      <Routes>
+
+        {/* ── PUBLIC routes (no login required) ──────────────────────────── */}
+        <Route element={<PublicLayout />}>
+          <Route index element={<Home />} />
+          <Route path="results"   element={<ResultsPage />} />
+          <Route path="rankings"  element={<SchoolRankingsPage />} />
+          <Route
+            path="login"
+            element={
+              <RedirectIfAuthed>
+                <LoginPage />
+              </RedirectIfAuthed>
+            }
+          />
+        </Route>
+
+        {/* ── PROTECTED routes (authenticated staff) ─────────────────────── */}
+        <Route
+          path="dashboard"
+          element={
+            <RequireAuth>
+              <DashboardLayout />
+            </RequireAuth>
+          }
+        >
+          {/* Default dashboard landing */}
+          <Route index element={<DashboardPage />} />
+
+          {/* Candidates (school officers + above) */}
+          <Route path="candidates"              element={<CandidatesPage />} />
+          <Route path="candidates/new"          element={<CandidateFormPage />} />
+          <Route path="candidates/:id"          element={<CandidateDetailPage />} />
+          <Route path="candidates/:id/edit"     element={<CandidateFormPage />} />
+
+          {/* Scripts & marks (examiners + above) */}
+          <Route path="scripts"                 element={<ScriptsPage />} />
+          <Route path="marks"                   element={<MarksEntryPage />} />
+
+          {/* ── KNEC ADMIN only ──────────────────────────────────────────── */}
+          <Route
+            path="admin"
+            element={
+              <RequireRole role="KNEC_ADMIN">
+                <AdminDashboardPage />
+              </RequireRole>
+            }
+          />
+          <Route
+            path="admin/publish"
+            element={
+              <RequireRole role="KNEC_ADMIN">
+                <PublishResultsPage />
+              </RequireRole>
+            }
+          />
+          <Route
+            path="admin/audit"
+            element={
+              <RequireRole role="KNEC_ADMIN">
+                <AuditLogPage />
+              </RequireRole>
+            }
+          />
+          <Route
+            path="admin/analytics"
+            element={
+              <RequireRole role="KNEC_ADMIN">
+                <AnalyticsPage />
+              </RequireRole>
+            }
+          />
+        </Route>
+
+        {/* ── 404 ────────────────────────────────────────────────────────── */}
+        <Route path="*" element={<NotFound />} />
+
+      </Routes>
+    </Suspense>
+  )
+}
