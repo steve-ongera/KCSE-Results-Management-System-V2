@@ -11,7 +11,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 
 import { useResultsLookup, useDownloadResultSlip } from '../hooks/useResults'
 import { resultsLookupSchema } from '../utils/validators'
-import { gradeColour, formatIndexNumber, formatDate, ordinal } from '../utils/formatters'
+import { gradeColour, formatIndexNumber, ordinal } from '../utils/formatters'
 import { ButtonSpinner } from '../components/common/PageLoader'
 
 const GRADE_SCALE = [
@@ -39,19 +39,21 @@ export default function ResultsPage() {
   }
 
   return (
-    <div className="page-enter container container-sm" style={{ paddingTop: 'var(--space-12)', paddingBottom: 'var(--space-12)' }}>
+    <div className="page-enter container container-sm"
+      style={{ paddingTop: 'var(--space-12)', paddingBottom: 'var(--space-12)' }}>
 
       {/* ── Page header ───────────────────────────────────────────────────── */}
       <div className="text-center" style={{ marginBottom: 'var(--space-10)' }}>
-        <h1 style={{ marginBottom: 'var(--space-3)' }}>Check Your KCSE Results</h1>
+        <h1 style={{ marginBottom: 'var(--space-2)' }}>Check Your KCSE Results</h1>
         <p className="text-muted">
           Enter your examination details below. No login or account needed.
         </p>
       </div>
 
       {/* ── Lookup form ───────────────────────────────────────────────────── */}
-      <div className="card" style={{ marginBottom: 'var(--space-8)' }}>
-        <form onSubmit={handleSubmit(onSubmit)} style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-5)' }}>
+      <div className="card card-flat" style={{ marginBottom: 'var(--space-8)' }}>
+        <form onSubmit={handleSubmit(onSubmit)}
+          style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-5)' }}>
 
           <div className="form-group">
             <label className="form-label form-label-required" htmlFor="index_number">
@@ -70,7 +72,7 @@ export default function ResultsPage() {
               <p className="form-error">⚠ {errors.index_number.message}</p>
             )}
             <p className="form-hint">
-              11-digit code from your KNEC admission card (e.g. 10234001023)
+              11-digit code from your KNEC admission card
             </p>
           </div>
 
@@ -92,7 +94,6 @@ export default function ResultsPage() {
             <p className="form-hint">As it appears on your birth certificate — all capitals</p>
           </div>
 
-          {/* API error */}
           {isError && (
             <div className="alert alert-error">
               <span className="alert-icon">⚠</span>
@@ -108,14 +109,13 @@ export default function ResultsPage() {
         </form>
       </div>
 
-      {/* ── Results display ───────────────────────────────────────────────── */}
       {results && (
         <ResultsDisplay results={results} onDownload={downloadSlip} downloading={downloading} />
       )}
 
-      {/* ── Help note ─────────────────────────────────────────────────────── */}
       {!results && (
-        <div className="text-center text-faint" style={{ marginTop: 'var(--space-6)', fontSize: 'var(--text-sm)' }}>
+        <div className="text-center text-faint"
+          style={{ marginTop: 'var(--space-6)', fontSize: 'var(--text-sm)' }}>
           <p>Results are available only after KNEC officially publishes them.</p>
           <p>Having trouble? Contact your school examination officer.</p>
         </div>
@@ -130,115 +130,191 @@ function ResultsDisplay({ results, onDownload, downloading }) {
   const { candidate, result, subjects, announcement } = results
 
   return (
-    <div className="page-enter" style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-6)' }}>
+    <div className="page-enter"
+      style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-6)' }}>
 
-      {/* Announcement banner */}
       {announcement && (
         <div className="alert alert-info">
-          <span className="alert-content" style={{ fontSize: 'var(--text-sm)' }}>{announcement}</span>
+          <span className="alert-content" style={{ fontSize: 'var(--text-sm)' }}>
+            {announcement}
+          </span>
         </div>
       )}
 
-      {/* ── Mean grade hero card ─────────────────────────────────────────── */}
-      <div className="result-card">
-        <div className="result-card-inner flex flex-col sm:flex-row sm:items-center gap-6">
+      {/* ── Candidate summary ────────────────────────────────────────────── */}
+      <div className="card card-flat">
 
-          {/* Grade */}
-          <div className="text-center" style={{ textAlign: 'left' }}>
-            <div className="result-meta-label" style={{ marginBottom: 'var(--space-1)' }}>
-              Mean Grade
+        {/* Header row: name + download */}
+        <div style={{
+          display:        'flex',
+          alignItems:     'flex-start',
+          justifyContent: 'space-between',
+          gap:            'var(--space-4)',
+          marginBottom:   'var(--space-5)',
+          paddingBottom:  'var(--space-5)',
+          borderBottom:   '1px solid var(--color-border)',
+        }}>
+          <div>
+            <h2 style={{ marginBottom: 'var(--space-1)', fontSize: 'var(--text-2xl)' }}>
+              {candidate.full_name}
+            </h2>
+            <div style={{
+              fontFamily:    'var(--font-mono)',
+              fontSize:      'var(--text-sm)',
+              color:         'var(--color-ink-muted)',
+              letterSpacing: '0.1em',
+            }}>
+              {formatIndexNumber(candidate.index_number)}
             </div>
-            <div className="result-card mean-grade" style={{ fontSize: 'clamp(4rem,10vw,5rem)' }}>
+            <div style={{
+              fontSize:   'var(--text-sm)',
+              color:      'var(--color-ink-muted)',
+              marginTop:  'var(--space-1)',
+            }}>
+              {candidate.school_name} &nbsp;·&nbsp; {candidate.county} County
+              &nbsp;·&nbsp; KCSE {candidate.year}
+            </div>
+          </div>
+          <button
+            onClick={() => onDownload(candidate.index_number)}
+            disabled={downloading}
+            className="btn btn-outline btn-sm"
+            style={{ flexShrink: 0 }}
+          >
+            {downloading ? <ButtonSpinner /> : '⬇'}&nbsp;Result Slip
+          </button>
+        </div>
+
+        {/* Mean grade row */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-8)', flexWrap: 'wrap' }}>
+
+          <div>
+            <div className="label" style={{ marginBottom: 'var(--space-1)' }}>Mean Grade</div>
+            <div className={`grade-display ${gradeColour(result.mean_grade)}`}
+              style={{ fontSize: 'var(--text-5xl)', lineHeight: 1 }}>
               {result.mean_grade}
-            </div>
-            <div style={{ color: 'var(--color-primary-300)', fontSize: 'var(--text-sm)', marginTop: 'var(--space-1)' }}>
-              {result.mean_points} points · {result.subjects_sat} subjects
             </div>
           </div>
 
-          {/* Candidate info */}
-          <div style={{ flex: 1 }}>
-            <div className="result-card candidate-name" style={{ marginBottom: 'var(--space-1)' }}>
-              {candidate.full_name}
+          <div style={{ display: 'flex', gap: 'var(--space-8)', flexWrap: 'wrap' }}>
+            <div>
+              <div className="label" style={{ marginBottom: 'var(--space-1)' }}>Mean Points</div>
+              <div style={{
+                fontFamily: 'var(--font-mono)',
+                fontSize:   'var(--text-2xl)',
+                fontWeight: 700,
+                color:      'var(--color-ink)',
+              }}>
+                {result.mean_points}
+              </div>
             </div>
-            <div className="result-card index-number" style={{ marginBottom: 'var(--space-3)' }}>
-              {formatIndexNumber(candidate.index_number)}
-            </div>
-            <div style={{ color: 'var(--color-primary-200)', fontSize: 'var(--text-sm)', display: 'flex', flexDirection: 'column', gap: 'var(--space-1)' }}>
-              <div>{candidate.school_name}</div>
-              <div>{candidate.county} County · KCSE {candidate.year}</div>
+            <div>
+              <div className="label" style={{ marginBottom: 'var(--space-1)' }}>Subjects Sat</div>
+              <div style={{
+                fontFamily: 'var(--font-mono)',
+                fontSize:   'var(--text-2xl)',
+                fontWeight: 700,
+                color:      'var(--color-ink)',
+              }}>
+                {result.subjects_sat}
+              </div>
             </div>
             {result.national_rank && (
-              <div className="hero-badge" style={{ marginTop: 'var(--space-3)', marginBottom: 0 }}>
-                🏆 {ordinal(result.national_rank)} Nationally
-                {result.school_rank && ` · ${ordinal(result.school_rank)} in School`}
+              <div>
+                <div className="label" style={{ marginBottom: 'var(--space-1)' }}>
+                  National Rank
+                </div>
+                <div style={{
+                  fontFamily: 'var(--font-mono)',
+                  fontSize:   'var(--text-2xl)',
+                  fontWeight: 700,
+                  color:      'var(--color-ink)',
+                }}>
+                  {ordinal(result.national_rank)}
+                  {result.school_rank && (
+                    <span style={{ fontSize: 'var(--text-sm)', color: 'var(--color-ink-muted)', marginLeft: 'var(--space-2)' }}>
+                      · {ordinal(result.school_rank)} in school
+                    </span>
+                  )}
+                </div>
               </div>
             )}
           </div>
 
-          {/* Download */}
-          <div style={{ alignSelf: 'flex-start' }}>
-            <button
-              onClick={() => onDownload(candidate.index_number)}
-              disabled={downloading}
-              className="btn btn-sm"
-              style={{
-                background:  'rgba(255,255,255,0.15)',
-                color:       '#fff',
-                borderColor: 'rgba(255,255,255,0.3)',
-              }}
-            >
-              {downloading ? <ButtonSpinner /> : '⬇'}&nbsp;Result Slip
-            </button>
-          </div>
         </div>
       </div>
 
-      {/* ── Subject results ──────────────────────────────────────────────── */}
-      <div className="card">
-        <h2 style={{ marginBottom: 'var(--space-4)' }}>Subject Results</h2>
-        <div className="subject-list">
-          {subjects.map((s) => (
-            <div key={s.subject_code} className="subject-row">
-              <div className="subject-name">
-                <span className="font-mono text-faint" style={{ fontSize: 'var(--text-xs)', marginRight: 'var(--space-2)' }}>
-                  {s.subject_code}
-                </span>
-                {s.subject_name}
-              </div>
-              <div className="subject-marks">
-                {s.moderated_marks !== undefined ? `${s.moderated_marks}/100` : '—'}
-              </div>
-              <div className={`subject-grade grade-display ${gradeColour(s.grade)}`}>
-                {s.grade}
-              </div>
-            </div>
-          ))}
+      {/* ── Subject results table ────────────────────────────────────────── */}
+      <div className="card card-flat" style={{ padding: 0 }}>
+        <div style={{
+          padding:      'var(--space-4) var(--space-6)',
+          borderBottom: '1px solid var(--color-border)',
+        }}>
+          <h3 style={{ fontSize: 'var(--text-base)', fontWeight: 600 }}>Subject Results</h3>
+        </div>
+        <div className="table-wrapper" style={{ border: 'none', boxShadow: 'none', borderRadius: 0 }}>
+          <table className="table">
+            <thead>
+              <tr>
+                <th>Code</th>
+                <th>Subject</th>
+                <th className="numeric">Marks</th>
+                <th className="text-center">Grade</th>
+              </tr>
+            </thead>
+            <tbody>
+              {subjects.map((s) => (
+                <tr key={s.subject_code}>
+                  <td style={{ fontFamily: 'var(--font-mono)', color: 'var(--color-ink-faint)', fontSize: 'var(--text-sm)' }}>
+                    {s.subject_code}
+                  </td>
+                  <td style={{ fontWeight: 500, color: 'var(--color-ink)' }}>
+                    {s.subject_name}
+                  </td>
+                  <td className="numeric">
+                    {s.moderated_marks !== undefined ? `${s.moderated_marks}/100` : '—'}
+                  </td>
+                  <td className="text-center">
+                    <span className={`grade-display ${gradeColour(s.grade)}`}
+                      style={{ fontSize: 'var(--text-lg)' }}>
+                      {s.grade}
+                    </span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       </div>
 
-      {/* ── Grade scale guide ────────────────────────────────────────────── */}
-      <div className="card" style={{ background: 'var(--color-bg-subtle)', borderColor: 'var(--color-border)' }}>
-        <div className="label" style={{ marginBottom: 'var(--space-3)' }}>
-          KCSE Grading Scale
+      {/* ── Grade scale ──────────────────────────────────────────────────── */}
+      <div className="card card-flat" style={{ padding: 0 }}>
+        <div style={{
+          padding:      'var(--space-4) var(--space-6)',
+          borderBottom: '1px solid var(--color-border)',
+        }}>
+          <h3 style={{ fontSize: 'var(--text-base)', fontWeight: 600 }}>KCSE Grading Scale</h3>
         </div>
-        <div className="grid grid-cols-4 sm:grid-cols-6 gap-2">
-          {GRADE_SCALE.map(([g, r]) => (
-            <div key={g} style={{
-              textAlign:     'center',
-              padding:       'var(--space-2)',
-              borderRadius:  'var(--radius-md)',
-              background:    'var(--color-surface)',
-              border:        '1px solid var(--color-border)',
-            }}>
-              <div className={`grade-display ${gradeColour(g)}`} style={{ fontSize: 'var(--text-sm)', fontWeight: 700 }}>
-                {g}
-              </div>
-              <div style={{ fontSize: '0.625rem', color: 'var(--color-ink-faint)', marginTop: 'var(--space-1)' }}>
-                {r}
-              </div>
-            </div>
-          ))}
+        <div className="table-wrapper" style={{ border: 'none', boxShadow: 'none', borderRadius: 0 }}>
+          <table className="table table-sm">
+            <thead>
+              <tr>
+                {GRADE_SCALE.map(([g]) => (
+                  <th key={g} className="text-center" style={{ minWidth: '3rem' }}>{g}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                {GRADE_SCALE.map(([g, r]) => (
+                  <td key={g} className="text-center"
+                    style={{ fontSize: 'var(--text-xs)', color: 'var(--color-ink-muted)' }}>
+                    {r}
+                  </td>
+                ))}
+              </tr>
+            </tbody>
+          </table>
         </div>
       </div>
 

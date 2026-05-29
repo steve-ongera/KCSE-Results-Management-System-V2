@@ -260,3 +260,52 @@
 .knec-brand-bar {
   color: rgba(15, 13, 13, 0.75);  /* change to → color: #fff; */
 }
+
+/* ── Mobile drawer integration with public nav ───────────────────────── */
+
+/* Ensure proper z-index stacking */
+.public-nav {
+  position: sticky;
+  top: 0;
+  z-index: var(--z-sticky);
+}
+
+/* Adjust container for mobile */
+@media (max-width: 639px) {
+  .public-nav-inner {
+    padding: 0 var(--space-2);
+  }
+}
+
+/* KNEC brand bar text truncation for mobile */
+@media (max-width: 639px) {
+  .knec-brand-bar {
+    font-size: 0.6875rem;
+    white-space: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  
+  .knec-brand-bar::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* Logo area adjustments */
+.knec-logo-area {
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-shrink: 0;
+}
+
+/* Mobile drawer backdrop visibility */
+@media (min-width: 1024px) {
+  .mobile-drawer-backdrop,
+  .mobile-drawer,
+  .menu-toggle {
+    display: none !important;
+  }
+}
