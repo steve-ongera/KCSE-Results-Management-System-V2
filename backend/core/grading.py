@@ -7,7 +7,7 @@
 # ═════════════════════════════════════════════════════════════════════════════
  
 """
-apps/examinations/grading.py
+core/grading.py
 """
  
 from django.conf import settings
