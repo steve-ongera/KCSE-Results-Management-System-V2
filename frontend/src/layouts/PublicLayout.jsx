@@ -8,55 +8,65 @@
 
 import { Outlet, NavLink, Link } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import '../App.css'
+
+const NAV_LINKS = [
+  { to: '/',         label: 'Home',            end: true  },
+  { to: '/results',  label: 'My Results',      end: false },
+  { to: '/rankings', label: 'School Rankings', end: false },
+]
+
+const FOOTER_LINKS = [
+  { to: '/results',  label: 'Check Results'  },
+  { to: '/rankings', label: 'School Rankings' },
+  { to: '/login',    label: 'Staff Portal'   },
+]
 
 export default function PublicLayout() {
   const { user } = useAuth()
 
   return (
-    <div className="min-h-screen flex flex-col bg-white">
+    <div className="public-layout">
 
       {/* ── Government banner ───────────────────────────────────────────── */}
-      <div className="bg-[#14532d] text-white text-xs py-1.5 px-4 text-center tracking-wide">
+      <div className="knec-brand-bar" style={{ justifyContent: 'center' }}>
         Republic of Kenya &nbsp;·&nbsp; Kenya National Examinations Council (KNEC)
       </div>
 
       {/* ── Main Navbar ─────────────────────────────────────────────────── */}
-      <header className="sticky top-0 z-50 bg-white border-b border-gray-200 shadow-sm">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 flex items-center justify-between h-16">
+      <header className="public-nav">
+        <div className="container public-nav-inner">
 
           {/* Logo + Title */}
-          <Link to="/" className="flex items-center gap-3 group" style={{ textDecoration: 'none' }}>
-            <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-[#166534] text-white font-bold text-lg flex-shrink-0"
-              style={{ fontFamily: 'var(--font-display)' }}>
-              K
+          <Link to="/" className="knec-logo-area" style={{ textDecoration: 'none' }}>
+            <div className="knec-emblem bg-primary">
+              <span style={{
+                fontFamily: 'var(--font-display)',
+                fontWeight: 800,
+                fontSize:   'var(--text-xl)',
+                color:      '#fff',
+              }}>
+                K
+              </span>
             </div>
             <div>
-              <div className="text-sm font-bold text-gray-900 leading-tight"
-                style={{ fontFamily: 'var(--font-display)' }}>
+              <div className="knec-site-title" style={{ fontSize: 'var(--text-base)' }}>
                 KCSE Portal
               </div>
-              <div className="text-[11px] text-gray-500 leading-tight">Results & Examinations</div>
+              <div className="knec-site-sub">Results &amp; Examinations</div>
             </div>
           </Link>
 
           {/* Nav links */}
-          <nav className="hidden md:flex items-center gap-1">
-            {[
-              { to: '/',         label: 'Home',     end: true },
-              { to: '/results',  label: 'My Results' },
-              { to: '/rankings', label: 'School Rankings' },
-            ].map(({ to, label, end }) => (
+          <nav className="public-nav-links" style={{ display: 'flex' }}>
+            {NAV_LINKS.map(({ to, label, end }) => (
               <NavLink
                 key={to}
                 to={to}
                 end={end}
                 style={{ textDecoration: 'none' }}
                 className={({ isActive }) =>
-                  `px-3.5 py-2 rounded-lg text-sm font-medium transition-colors ${
-                    isActive
-                      ? 'bg-green-50 text-green-800'
-                      : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
-                  }`
+                  `public-nav-link${isActive ? ' active' : ''}`
                 }
               >
                 {label}
@@ -76,74 +86,113 @@ export default function PublicLayout() {
               </Link>
             )}
           </div>
+
         </div>
       </header>
 
       {/* ── Page content ────────────────────────────────────────────────── */}
-      <main className="flex-1">
+      <main className="public-layout-main">
         <Outlet />
       </main>
 
       {/* ── Footer ──────────────────────────────────────────────────────── */}
-      <footer className="bg-gray-900 text-gray-400 mt-auto">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-10">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+      <footer className="public-footer" style={{ background: 'var(--color-gray-900)' }}>
+        <div className="container">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8"
+            style={{ paddingBottom: 'var(--space-8)' }}>
+
+            {/* Brand blurb */}
             <div>
-              <div className="text-white font-bold mb-3"
-                style={{ fontFamily: 'var(--font-display)', fontSize: '1.1rem' }}>
+              <div style={{
+                fontFamily:   'var(--font-display)',
+                fontWeight:   700,
+                fontSize:     'var(--text-lg)',
+                color:        '#fff',
+                marginBottom: 'var(--space-3)',
+              }}>
                 KCSE Results Portal
               </div>
-              <p className="text-sm leading-relaxed">
+              <p style={{
+                fontSize:   'var(--text-sm)',
+                lineHeight: 1.7,
+                color:      'rgba(255,255,255,0.5)',
+                marginBottom: 0,
+              }}>
                 Official Kenya Certificate of Secondary Education examination
                 results system, managed by the Kenya National Examinations Council.
               </p>
             </div>
+
+            {/* Quick links */}
             <div>
-              <div className="text-white font-semibold mb-3 text-sm uppercase tracking-wider">
+              <div className="label" style={{
+                color:        'rgba(255,255,255,0.75)',
+                marginBottom: 'var(--space-3)',
+              }}>
                 Quick Links
               </div>
-              <ul className="space-y-2 text-sm">
-                {[
-                  { to: '/results',  label: 'Check Results' },
-                  { to: '/rankings', label: 'School Rankings' },
-                  { to: '/login',    label: 'Staff Portal' },
-                ].map(({ to, label }) => (
+              <ul style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-2)' }}>
+                {FOOTER_LINKS.map(({ to, label }) => (
                   <li key={to}>
-                    <Link to={to}
-                      className="hover:text-white transition-colors"
-                      style={{ textDecoration: 'none' }}>
+                    <Link to={to} className="public-footer-link">
                       {label}
                     </Link>
                   </li>
                 ))}
               </ul>
             </div>
+
+            {/* Contact */}
             <div>
-              <div className="text-white font-semibold mb-3 text-sm uppercase tracking-wider">
+              <div className="label" style={{
+                color:        'rgba(255,255,255,0.75)',
+                marginBottom: 'var(--space-3)',
+              }}>
                 Contact KNEC
               </div>
-              <ul className="space-y-2 text-sm">
+              <ul style={{
+                display:       'flex',
+                flexDirection: 'column',
+                gap:           'var(--space-2)',
+                fontSize:      'var(--text-sm)',
+                color:         'rgba(255,255,255,0.5)',
+              }}>
                 <li>New Mitihani House, Upper Hill</li>
                 <li>Nairobi, Kenya</li>
-                <li className="pt-1">
-                  <a href="mailto:itsupport@knec.ac.ke" className="hover:text-white">
+                <li style={{ paddingTop: 'var(--space-1)' }}>
+                  <a href="mailto:itsupport@knec.ac.ke" className="public-footer-link">
                     itsupport@knec.ac.ke
                   </a>
                 </li>
                 <li>
-                  <a href="https://www.knec.ac.ke" target="_blank" rel="noopener noreferrer"
-                    className="hover:text-white">
+                  <a href="https://www.knec.ac.ke"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="public-footer-link">
                     www.knec.ac.ke
                   </a>
                 </li>
               </ul>
             </div>
+
           </div>
-          <div className="border-t border-gray-800 mt-8 pt-6 text-center text-xs">
+
+          {/* Bottom bar */}
+          <div className="divider" style={{
+            background:   'rgba(255,255,255,0.08)',
+            margin:       'var(--space-6) 0 0',
+          }} />
+          <div style={{
+            paddingTop: 'var(--space-6)',
+            textAlign:  'center',
+            fontSize:   'var(--text-xs)',
+            color:      'rgba(255,255,255,0.35)',
+          }}>
             © {new Date().getFullYear()} Kenya National Examinations Council. All rights reserved.
           </div>
         </div>
       </footer>
+
     </div>
   )
 }

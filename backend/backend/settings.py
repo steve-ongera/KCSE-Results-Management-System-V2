@@ -259,19 +259,20 @@ CORS_ALLOW_HEADERS = [
 # CACHE — Redis
 # ─────────────────────────────────────────────────────────────────────────────
 
-REDIS_URL = config('REDIS_URL', default='redis://localhost:6379/0')
+# REDIS_URL = config('REDIS_URL', default='redis://localhost:6379/0')
 
-CACHES = {
-    'default': {
-        'BACKEND':  'django.core.cache.backends.redis.RedisCache',
-        'LOCATION': REDIS_URL,
-        'OPTIONS': {
-            'CLIENT_CLASS': 'django_redis.client.DefaultClient',
-        },
-        'TIMEOUT': 300,  # 5 minutes default cache timeout
-        'KEY_PREFIX': 'kcse',
-    }
-}
+# CACHES = {
+#     'default': {
+#         'BACKEND':  'django.core.cache.backends.redis.RedisCache',
+#         'LOCATION': REDIS_URL,
+#         'OPTIONS': {
+#             'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+#         },
+#         'TIMEOUT': 300,  # 5 minutes default cache timeout
+#         'KEY_PREFIX': 'kcse',
+#     }
+# }
+
 
 SESSION_ENGINE      = 'django.contrib.sessions.backends.cache'
 SESSION_CACHE_ALIAS = 'default'
@@ -281,22 +282,22 @@ SESSION_CACHE_ALIAS = 'default'
 # CELERY — Async Task Queue
 # ─────────────────────────────────────────────────────────────────────────────
 
-CELERY_BROKER_URL         = REDIS_URL
-CELERY_RESULT_BACKEND     = REDIS_URL
-CELERY_ACCEPT_CONTENT     = ['json']
-CELERY_TASK_SERIALIZER    = 'json'
-CELERY_RESULT_SERIALIZER  = 'json'
-CELERY_TIMEZONE           = 'Africa/Nairobi'
-CELERY_TASK_TRACK_STARTED = True
-CELERY_TASK_TIME_LIMIT    = 30 * 60    # 30 minutes hard limit
-CELERY_TASK_SOFT_TIME_LIMIT = 25 * 60  # 25 minutes soft limit
+# CELERY_BROKER_URL         = REDIS_URL
+# CELERY_RESULT_BACKEND     = REDIS_URL
+# CELERY_ACCEPT_CONTENT     = ['json']
+# CELERY_TASK_SERIALIZER    = 'json'
+# CELERY_RESULT_SERIALIZER  = 'json'
+# CELERY_TIMEZONE           = 'Africa/Nairobi'
+# CELERY_TASK_TRACK_STARTED = True
+# CELERY_TASK_TIME_LIMIT    = 30 * 60    # 30 minutes hard limit
+# CELERY_TASK_SOFT_TIME_LIMIT = 25 * 60  # 25 minutes soft limit
 
-CELERY_BEAT_SCHEDULE = {
-    'recompute-rankings-nightly': {
-        'task':     'core.tasks.recompute_rankings',
-        'schedule': 3600 * 24,  # every 24 hours
-    },
-}
+# CELERY_BEAT_SCHEDULE = {
+#     'recompute-rankings-nightly': {
+#         'task':     'core.tasks.recompute_rankings',
+#         'schedule': 3600 * 24,  # every 24 hours
+#     },
+# }
 
 
 # ─────────────────────────────────────────────────────────────────────────────
