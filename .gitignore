@@ -1,0 +1,82 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# .gitignore  — KCSE Management System
+# ─────────────────────────────────────────────────────────────────────────────
+
+# ── Python / Django ───────────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
+.Python
+env/
+venv/
+.venv/
+ENV/
+
+# Django
+*.log
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+media/
+staticfiles/
+/backend/logs/
+
+# Migrations (keep in version control — only ignore locally generated ones)
+# Uncomment ONLY if you want to ignore migrations:
+# */migrations/*.py
+# !*/migrations/__init__.py
+
+# Secrets
+.env
+.env.local
+.env.production
+.env.*.local
+*.pem
+*.key
+
+# ── Node / React ─────────────────────────────────────────────────────────────
+node_modules/
+.npm
+dist/
+dist-ssr/
+*.local
+
+# Vite
+.vite/
+
+# ESLint / Prettier cache
+.eslintcache
+.prettiercache
+
+# ── IDEs ─────────────────────────────────────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# ── Docker ────────────────────────────────────────────────────────────────────
+# Keep docker-compose.yml but ignore override files with secrets
+docker-compose.override.yml
+
+# ── Coverage ─────────────────────────────────────────────────────────────────
+.coverage
+htmlcov/
+coverage.xml
+*.cover
+
+# ── OS ───────────────────────────────────────────────────────────────────────
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
