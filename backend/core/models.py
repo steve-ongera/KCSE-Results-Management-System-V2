@@ -9,7 +9,120 @@ Covers the full examination lifecycle:
   - Marks entry & validation
   - Results computation & publication
   - Audit logging
+
+Custom User model extending Django's AbstractUser.
+Adds a role field for KNEC's permission hierarchy and links
+staff users to their examination center.
+
+Role hierarchy (top → bottom):
+  KNEC_ADMIN        — Full system: publish, moderate, audit
+  COUNTY_OFFICER    — County-level candidate approval
+  SUBCOUNTY_OFFICER — Sub-county approval workflow
+  SCHOOL_OFFICER    — Register candidates, submit for approval
+  CHIEF_EXAMINER    — Lock approved marks nationally
+  TEAM_LEADER       — Approve marks entered by examiners
+  EXAMINER          — Enter marks for assigned scripts
 """
+
+from django.contrib.auth.models import AbstractUser
+from django.db import models
+from django.utils.translation import gettext_lazy as _
+
+
+class UserRole(models.TextChoices):
+    KNEC_ADMIN        = 'KNEC_ADMIN',        _('KNEC Administrator')
+    COUNTY_OFFICER    = 'COUNTY_OFFICER',    _('County Education Officer')
+    SUBCOUNTY_OFFICER = 'SUBCOUNTY_OFFICER', _('Sub-County Education Officer')
+    SCHOOL_OFFICER    = 'SCHOOL_OFFICER',    _('School Examination Officer')
+    CHIEF_EXAMINER    = 'CHIEF_EXAMINER',    _('Chief Examiner')
+    TEAM_LEADER       = 'TEAM_LEADER',       _('Team Leader')
+    EXAMINER          = 'EXAMINER',          _('Examiner')
+
+
+class User(AbstractUser):
+    """
+    Extended user model for all KCSE system staff.
+
+    Fields beyond the standard AbstractUser:
+      role              — determines access level across the system
+      examination_center — links school officers to their school
+      phone             — contact number
+      employee_id       — TSC/KNEC employee identifier
+      is_active_examiner — flag set during marking season
+    """
+
+    role = models.CharField(
+        max_length=20,
+        choices=UserRole.choices,
+        default=UserRole.SCHOOL_OFFICER,
+        db_index=True,
+    )
+
+    # School officers are linked to a specific examination center.
+    # KNEC admins and examiners have center = None (system-wide access).
+    examination_center = models.ForeignKey(
+        'examinations.ExaminationCenter',
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name='staff_users',
+        help_text=_('The examination center this officer manages. '
+                    'Leave blank for KNEC-level staff.'),
+    )
+
+    phone       = models.CharField(max_length=15, blank=True)
+    employee_id = models.CharField(
+        max_length=20, blank=True, unique=True,
+        help_text=_('TSC or KNEC employee number'),
+    )
+
+    # Examiners are activated per marking season
+    is_active_examiner = models.BooleanField(
+        default=False,
+        help_text=_('True when this examiner is cleared for the current marking season.'),
+    )
+
+    # Track last seen county for regional officers
+    county = models.CharField(max_length=100, blank=True)
+
+    class Meta:
+        verbose_name        = _('Staff User')
+        verbose_name_plural = _('Staff Users')
+        ordering            = ['last_name', 'first_name']
+        indexes = [
+            models.Index(fields=['role']),
+            models.Index(fields=['examination_center']),
+        ]
+
+    def __str__(self):
+        return (
+            f"{self.get_full_name() or self.username} "
+            f"[{self.get_role_display()}]"
+        )
+
+    # ── Convenience role checks ──────────────────────────────────────────────
+
+    @property
+    def is_knec_admin(self):
+        return self.role == UserRole.KNEC_ADMIN
+
+    @property
+    def is_school_officer(self):
+        return self.role in {
+            UserRole.SCHOOL_OFFICER,
+            UserRole.SUBCOUNTY_OFFICER,
+            UserRole.COUNTY_OFFICER,
+            UserRole.KNEC_ADMIN,
+        }
+
+    @property
+    def is_examiner_role(self):
+        return self.role in {
+            UserRole.EXAMINER,
+            UserRole.TEAM_LEADER,
+            UserRole.CHIEF_EXAMINER,
+            UserRole.KNEC_ADMIN,
+        }
 
 from django.db import models
 from django.core.validators import (
