@@ -155,3 +155,38 @@ urlpatterns = [
         name='audit-log-list',
     ),
 ]
+
+# ─────────────────────────────────────────────────────────────────────────────
+# core/urls.py
+# ─────────────────────────────────────────────────────────────────────────────
+ 
+"""
+core/urls.py
+All routes prefixed with /api/v1/auth/ by the project urls.py.
+"""
+ 
+from django.urls import path
+from rest_framework_simplejwt.views import TokenRefreshView, TokenVerifyView
+ 
+from .views import (
+    CustomTokenObtainPairView,
+    LogoutView,
+    MeView,
+    ChangePasswordView,
+)
+ 
+urlpatterns = [
+    # POST — exchange username + password for JWT access + refresh tokens
+    path('login/',           CustomTokenObtainPairView.as_view(), name='token-obtain'),
+    # POST — get new access token using refresh token
+    path('refresh/',         TokenRefreshView.as_view(),          name='token-refresh'),
+    # POST — verify a token is still valid
+    path('verify/',          TokenVerifyView.as_view(),           name='token-verify'),
+    # POST — blacklist refresh token (logout)
+    path('logout/',          LogoutView.as_view(),                name='logout'),
+    # GET  — current user profile
+    path('me/',              MeView.as_view(),                    name='me'),
+    # POST — change password
+    path('change-password/', ChangePasswordView.as_view(),        name='change-password'),
+]
+ 
