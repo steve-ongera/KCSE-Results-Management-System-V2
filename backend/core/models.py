@@ -61,7 +61,7 @@ class User(AbstractUser):
     # School officers are linked to a specific examination center.
     # KNEC admins and examiners have center = None (system-wide access).
     examination_center = models.ForeignKey(
-        'examinations.ExaminationCenter',
+        'core.ExaminationCenter',
         null=True,
         blank=True,
         on_delete=models.SET_NULL,

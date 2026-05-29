@@ -51,18 +51,7 @@ urlpatterns = [
     # ── Health Check ─────────────────────────────────────────────────────────
     path('api/v1/health/', health_check, name='health-check'),
 
-    # ── Authentication (JWT) ─────────────────────────────────────────────────
-    #   POST /api/v1/auth/login/          → obtain JWT token pair
-    #   POST /api/v1/auth/refresh/        → refresh access token
-    #   POST /api/v1/auth/verify/         → verify token validity
-    path('api/v1/auth/', include('apps.accounts.urls')),
-
-    # ── Core Examinations API ─────────────────────────────────────────────────
-    #   Full route list is in apps/examinations/urls.py
-    path('api/v1/', include('apps.examinations.urls')),
-
-    # ── Analytics App ─────────────────────────────────────────────────────────
-    path('api/v1/', include('apps.analytics.urls')),
+   
 
     # ── OpenAPI Schema & Docs ─────────────────────────────────────────────────
     #   /api/schema/        → Download OpenAPI 3.0 YAML schema
@@ -84,28 +73,6 @@ urlpatterns = [
         name='redoc',
     ),
 ]
-
-# ── Serve Media Files in Development ─────────────────────────────────────────
-# In production use Nginx or S3 to serve /media/ files.
-if settings.DEBUG:
-    urlpatterns += static(
-        settings.MEDIA_URL,
-        document_root=settings.MEDIA_ROOT,
-    )
-    urlpatterns += static(
-        settings.STATIC_URL,
-        document_root=settings.STATIC_ROOT,
-    )
-
-    # Django Debug Toolbar (only installed in development)
-    try:
-        import debug_toolbar
-        urlpatterns = [
-            path('__debug__/', include(debug_toolbar.urls)),
-        ] + urlpatterns
-    except ImportError:
-        pass
-
 
 # ── Admin Site Customization ──────────────────────────────────────────────────
 admin.site.site_header  = 'KCSE Management System'

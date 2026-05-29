@@ -12,7 +12,7 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
  
  
-@receiver(post_save, sender='examinations.ExaminationYear')
+@receiver(post_save, sender='core.ExaminationYear')
 def create_result_publication(sender, instance, created, **kwargs):
     """
     Auto-create a ResultPublication record whenever a new ExaminationYear
@@ -23,7 +23,7 @@ def create_result_publication(sender, instance, created, **kwargs):
         ResultPublication.objects.get_or_create(examination_year=instance)
  
  
-@receiver(post_save, sender='examinations.Candidate')
+@receiver(post_save, sender='core.Candidate')
 def auto_add_compulsory_subjects(sender, instance, created, **kwargs):
     """
     When a new candidate is created, automatically add all compulsory subjects
