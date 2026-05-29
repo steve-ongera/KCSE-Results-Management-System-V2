@@ -33,6 +33,105 @@ from .models import (
 )
 
 
+"""
+core/serializers.py
+ 
+JWT token serializer (adds role + user info to token response)
+and User profile serializer.
+"""
+ 
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+from rest_framework import serializers
+from .models import User
+ 
+ 
+class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
+    """
+    Extends the default JWT obtain-pair serializer to inject
+    role and user details into the token payload AND response body.
+ 
+    Response shape:
+    {
+        "access":   "...",
+        "refresh":  "...",
+        "user": {
+            "id":         "...",
+            "username":   "...",
+            "first_name": "...",
+            "last_name":  "...",
+            "email":      "...",
+            "role":       "KNEC_ADMIN",
+            "center_code": "10234001" | null
+        }
+    }
+    """
+ 
+    @classmethod
+    def get_token(cls, user):
+        token = super().get_token(user)
+        # Embed role in the JWT payload so the frontend can read it
+        # without a separate /me/ call if needed
+        token['role']       = user.role
+        token['full_name']  = user.get_full_name()
+        token['center_code'] = (
+            user.examination_center.center_code
+            if user.examination_center else None
+        )
+        return token
+ 
+    def validate(self, attrs):
+        data = super().validate(attrs)
+        # Append full user profile to the login response
+        data['user'] = UserProfileSerializer(self.user).data
+        return data
+ 
+ 
+class UserProfileSerializer(serializers.ModelSerializer):
+    """Full user profile returned by /auth/me/."""
+ 
+    center_code  = serializers.CharField(
+        source='examination_center.center_code', default=None, read_only=True
+    )
+    school_name  = serializers.CharField(
+        source='examination_center.school_name', default=None, read_only=True
+    )
+    role_display = serializers.CharField(source='get_role_display', read_only=True)
+ 
+    class Meta:
+        model  = User
+        fields = [
+            'id', 'username', 'first_name', 'last_name', 'email',
+            'role', 'role_display',
+            'center_code', 'school_name',
+            'phone', 'employee_id', 'county',
+            'is_active_examiner',
+            'last_login', 'date_joined',
+        ]
+        read_only_fields = fields
+ 
+ 
+class ChangePasswordSerializer(serializers.Serializer):
+    """Used by staff to change their own password."""
+ 
+    old_password     = serializers.CharField(write_only=True)
+    new_password     = serializers.CharField(write_only=True, min_length=10)
+    confirm_password = serializers.CharField(write_only=True)
+ 
+    def validate(self, data):
+        if data['new_password'] != data['confirm_password']:
+            raise serializers.ValidationError(
+                {'confirm_password': "Passwords do not match."}
+            )
+        return data
+ 
+    def validate_old_password(self, value):
+        user = self.context['request'].user
+        if not user.check_password(value):
+            raise serializers.ValidationError("Current password is incorrect.")
+        return value
+ 
+ 
+ 
 # ─────────────────────────────────────────────────────────────────────────────
 # EXAMINATION YEAR
 # ─────────────────────────────────────────────────────────────────────────────
