@@ -913,3 +913,126 @@ class AuditLogListView(generics.ListAPIView):
         if date_to:
             qs = qs.filter(timestamp__date__lte=date_to)
         return qs
+    
+    
+
+# ─────────────────────────────────────────────────────────────────────────────
+# core/views.py
+# ─────────────────────────────────────────────────────────────────────────────
+ 
+"""
+core/views.py
+ 
+Authentication views: login (JWT), refresh, logout (blacklist), /me/.
+"""
+ 
+from rest_framework import status, permissions
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.exceptions import TokenError
+ 
+from .models import AuditLog, AuditAction
+from .serializers import (
+    CustomTokenObtainPairSerializer,
+    UserProfileSerializer,
+    ChangePasswordSerializer,
+)
+ 
+ 
+class CustomTokenObtainPairView(TokenObtainPairView):
+    """
+    POST /api/v1/auth/login/
+ 
+    Returns access + refresh tokens with user profile embedded.
+    Logs the login event to the audit trail.
+    """
+ 
+    serializer_class = CustomTokenObtainPairSerializer
+ 
+    def post(self, request, *args, **kwargs):
+        response = super().post(request, *args, **kwargs)
+        if response.status_code == 200:
+            # Log successful login
+            AuditLog.log(
+                action=AuditAction.LOGIN,
+                request=request,
+                description=f"Staff login: {request.data.get('username', '')}",
+            )
+        return response
+ 
+ 
+class LogoutView(APIView):
+    """
+    POST /api/v1/auth/logout/
+ 
+    Blacklists the provided refresh token (requires token_blacklist app).
+    The frontend must also delete the tokens from localStorage.
+    """
+ 
+    permission_classes = [permissions.IsAuthenticated]
+ 
+    def post(self, request, *args, **kwargs):
+        refresh_token = request.data.get('refresh')
+        if not refresh_token:
+            return Response(
+                {'detail': 'Refresh token is required.'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        try:
+            token = RefreshToken(refresh_token)
+            token.blacklist()
+        except TokenError:
+            # Token already blacklisted or invalid — still treat as success
+            pass
+ 
+        AuditLog.log(
+            action=AuditAction.LOGOUT,
+            user=request.user,
+            request=request,
+            description=f"Staff logout: {request.user.username}",
+        )
+        return Response({'detail': 'Logged out successfully.'}, status=status.HTTP_200_OK)
+ 
+ 
+class MeView(APIView):
+    """
+    GET /api/v1/auth/me/
+ 
+    Returns the current authenticated user's full profile.
+    Called by the frontend on app bootstrap to restore auth state.
+    """
+ 
+    permission_classes = [permissions.IsAuthenticated]
+ 
+    def get(self, request, *args, **kwargs):
+        return Response(UserProfileSerializer(request.user).data)
+ 
+ 
+class ChangePasswordView(APIView):
+    """
+    POST /api/v1/auth/change-password/
+ 
+    Allows authenticated staff to change their own password.
+    """
+ 
+    permission_classes = [permissions.IsAuthenticated]
+ 
+    def post(self, request, *args, **kwargs):
+        serializer = ChangePasswordSerializer(
+            data=request.data, context={'request': request}
+        )
+        serializer.is_valid(raise_exception=True)
+        request.user.set_password(serializer.validated_data['new_password'])
+        request.user.save()
+        AuditLog.log(
+            action=AuditAction.UPDATE,
+            user=request.user,
+            request=request,
+            description=f"Password changed: {request.user.username}",
+            object_type='User',
+            object_id=str(request.user.pk),
+        )
+        return Response({'detail': 'Password updated successfully.'})
+ 
