@@ -1,4 +1,4 @@
-# KCSE Results Management System V2
+#  KCSE Results Management System V2
 
 A full-stack web application for managing Kenya Certificate of Secondary Education (KCSE) examinations — from candidate registration through results publication. Built with **Django REST Framework** (backend) and **React JSX** (frontend).
 
@@ -75,7 +75,7 @@ The KCSE Management System digitizes and streamlines the entire KCSE examination
 ## Project Structure
 
 ```
-kcse_systemV2/
+kcse_system/
 ├── backend/                          # Django project root
 │   ├── manage.py
 │   ├── requirements.txt
@@ -210,26 +210,26 @@ kcse_systemV2/
 - **Result Slip Download**: Print or download PDF result slip
 - **School Performance**: View school mean grades and rankings
 
-###  School Administration
+### School Administration
 - Candidate registration with full KNEC data capture
 - Subject combination management and validation
 - Examination attendance recording
 - Access to candidate nominal rolls and timetables
 
-###  Examiner Portal
+### 📝 Examiner Portal
 - Secure marks entry per subject paper
 - Bulk marks upload via CSV/Excel
 - Real-time validation (range checks, duplicate detection)
 - Mark review and approval workflow
 
-###  KNEC Administration
+### 🏛️ KNEC Administration
 - Final candidate approval and index number assignment
 - Nationwide marks moderation
 - Irregularity and malpractice detection
 - Results locking and publication control
 - Full audit log viewer
 
-###  Analytics
+### 📊 Analytics
 - School performance reports
 - County and national rankings
 - Subject performance trends
