@@ -1,54 +1,144 @@
 /**
  * src/components/common/PageLoader.jsx
  *
- * Full-page loading spinner shown during Suspense fallback
- * and while auth state is being bootstrapped.
+ * Loading states for the KCSE Results Portal.
+ * 
+ * Components:
+ * - PageLoader: Full-page loading spinner (Suspense fallback, auth bootstrap)
+ * - InlineLoader: Skeleton loader for cards/sections
+ * - ButtonSpinner: Compact spinner for buttons during mutations
+ * - ResultLoader: Specialized loader for results lookup
+ * - TableLoader: Skeleton for data tables
  */
 
-export default function PageLoader({ message = 'Loading…' }) {
+import { useEffect, useState } from 'react'
+
+/**
+ * Full-page loading spinner
+ * Used for Suspense fallback and auth state bootstrap
+ */
+export default function PageLoader({ message = 'Loading...' }) {
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50">
-      <div className="flex flex-col items-center gap-4">
-        {/* Spinner */}
-        <div className="relative w-14 h-14">
-          <div className="absolute inset-0 rounded-full border-4 border-green-100" />
-          <div className="absolute inset-0 rounded-full border-4 border-transparent
-            border-t-green-700 animate-spin" />
-          <div className="absolute inset-2 rounded-full bg-green-700/10 flex items-center
-            justify-center text-green-800 font-bold text-lg"
-            style={{ fontFamily: 'var(--font-display)' }}>
-            K
-          </div>
+    <div className="page-loader">
+      <div className="page-loader-spinner">
+        <div className="page-loader-ring"></div>
+        <div className="page-loader-ring-inner"></div>
+        <div className="page-loader-emblem">
+          <span>K</span>
         </div>
-        <p className="text-sm text-gray-500 font-medium">{message}</p>
       </div>
+      <p className="page-loader-message">{message}</p>
     </div>
   )
 }
 
 /**
- * Inline (non-fullpage) loading state — use inside cards/sections.
+ * Inline skeleton loader for cards/sections
  */
-export function InlineLoader({ rows = 3 }) {
+export function InlineLoader({ rows = 3, variant = 'default' }) {
   return (
-    <div className="space-y-3 py-4">
+    <div className={`inline-loader inline-loader-${variant}`}>
       {Array.from({ length: rows }).map((_, i) => (
-        <div key={i} className="skeleton h-10 rounded-lg" style={{ opacity: 1 - i * 0.2 }} />
+        <div 
+          key={i} 
+          className="inline-loader-row"
+          style={{ animationDelay: `${i * 0.05}s` }}
+        />
       ))}
     </div>
   )
 }
 
 /**
- * Spinner button indicator — used inside buttons while a mutation is pending.
+ * Spinner for buttons during pending mutations
  */
-export function ButtonSpinner() {
+export function ButtonSpinner({ size = 'sm', color = 'white' }) {
   return (
-    <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
-      <circle className="opacity-25" cx="12" cy="12" r="10"
-        stroke="currentColor" strokeWidth="4" />
-      <path className="opacity-75" fill="currentColor"
-        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-    </svg>
+    <span className={`button-spinner button-spinner-${size} button-spinner-${color}`}>
+      <svg className="button-spinner-svg" viewBox="0 0 24 24">
+        <circle cx="12" cy="12" r="10" />
+        <path d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+      </svg>
+    </span>
+  )
+}
+
+/**
+ * Specialized loader for results lookup page
+ * Shows a skeleton of the results card while fetching
+ */
+export function ResultLoader() {
+  return (
+    <div className="result-loader">
+      <div className="result-loader-card">
+        <div className="result-loader-header">
+          <div className="result-loader-name skeleton"></div>
+          <div className="result-loader-download skeleton"></div>
+        </div>
+        <div className="result-loader-stats">
+          {[1, 2, 3, 4].map((i) => (
+            <div key={i} className="result-loader-stat">
+              <div className="result-loader-stat-label skeleton"></div>
+              <div className="result-loader-stat-value skeleton"></div>
+            </div>
+          ))}
+        </div>
+      </div>
+      <div className="result-loader-table skeleton">
+        <div className="result-loader-table-header skeleton"></div>
+        {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
+          <div key={i} className="result-loader-table-row skeleton"></div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+/**
+ * Skeleton loader for data tables
+ */
+export function TableLoader({ columns = 4, rows = 5 }) {
+  return (
+    <div className="table-loader">
+      <div className="table-loader-header">
+        {Array.from({ length: columns }).map((_, i) => (
+          <div key={i} className="table-loader-header-cell skeleton"></div>
+        ))}
+      </div>
+      <div className="table-loader-body">
+        {Array.from({ length: rows }).map((_, rowIdx) => (
+          <div key={rowIdx} className="table-loader-row">
+            {Array.from({ length: columns }).map((_, colIdx) => (
+              <div key={colIdx} className="table-loader-cell skeleton"></div>
+            ))}
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+/**
+ * Dot pulse loader for inline status indicators
+ */
+export function DotLoader({ message = 'Loading' }) {
+  const [dots, setDots] = useState('')
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setDots((prev) => (prev.length >= 3 ? '' : prev + '.'))
+    }, 400)
+    return () => clearInterval(interval)
+  }, [])
+
+  return (
+    <div className="dot-loader">
+      <div className="dot-loader-dots">
+        <span className="dot-loader-dot"></span>
+        <span className="dot-loader-dot"></span>
+        <span className="dot-loader-dot"></span>
+      </div>
+      <span className="dot-loader-text">{message}{dots}</span>
+    </div>
   )
 }

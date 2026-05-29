@@ -3,6 +3,10 @@
  *
  * Public results lookup page. No login required.
  * Candidate enters 11-digit index number + full name → sees full results.
+ * 
+ * Responsive layout:
+ * - Laptop/Desktop: Form on left, Results on right (side by side)
+ * - Tablet/Mobile: Form above, Results below (stacked)
  */
 
 import { useState } from 'react'
@@ -13,12 +17,6 @@ import { useResultsLookup, useDownloadResultSlip } from '../hooks/useResults'
 import { resultsLookupSchema } from '../utils/validators'
 import { gradeColour, formatIndexNumber, ordinal } from '../utils/formatters'
 import { ButtonSpinner } from '../components/common/PageLoader'
-
-const GRADE_SCALE = [
-  ['A','75-100'],['A-','70-74'],['B+','65-69'],['B','60-64'],
-  ['B-','55-59'],['C+','50-54'],['C','45-49'],['C-','40-44'],
-  ['D+','35-39'],['D','30-34'],['D-','25-29'],['E','0-24'],
-]
 
 export default function ResultsPage() {
   const [results, setResults] = useState(null)
@@ -39,280 +37,204 @@ export default function ResultsPage() {
   }
 
   return (
-    <div className="page-enter container container-sm"
-      style={{ paddingTop: 'var(--space-12)', paddingBottom: 'var(--space-12)' }}>
-
-      {/* ── Page header ───────────────────────────────────────────────────── */}
-      <div className="text-center" style={{ marginBottom: 'var(--space-10)' }}>
-        <h1 style={{ marginBottom: 'var(--space-2)' }}>Check Your KCSE Results</h1>
-        <p className="text-muted">
-          Enter your examination details below. No login or account needed.
-        </p>
-      </div>
-
-      {/* ── Lookup form ───────────────────────────────────────────────────── */}
-      <div className="card card-flat" style={{ marginBottom: 'var(--space-8)' }}>
-        <form onSubmit={handleSubmit(onSubmit)}
-          style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-5)' }}>
-
-          <div className="form-group">
-            <label className="form-label form-label-required" htmlFor="index_number">
-              Examination Index Number
-            </label>
-            <input
-              id="index_number"
-              {...register('index_number')}
-              placeholder="e.g. 10234001023"
-              className={`form-input form-input-mono${errors.index_number ? ' error' : ''}`}
-              maxLength={11}
-              autoComplete="off"
-              inputMode="numeric"
-            />
-            {errors.index_number && (
-              <p className="form-error">⚠ {errors.index_number.message}</p>
-            )}
-            <p className="form-hint">
-              11-digit code from your KNEC admission card
-            </p>
-          </div>
-
-          <div className="form-group">
-            <label className="form-label form-label-required" htmlFor="full_name">
-              Full Name
-            </label>
-            <input
-              id="full_name"
-              {...register('full_name')}
-              placeholder="e.g. GADAFI IMRAN AKIL"
-              className={`form-input${errors.full_name ? ' error' : ''}`}
-              autoComplete="off"
-              style={{ textTransform: 'uppercase' }}
-            />
-            {errors.full_name && (
-              <p className="form-error">⚠ {errors.full_name.message}</p>
-            )}
-            <p className="form-hint">As it appears on your birth certificate — all capitals</p>
-          </div>
-
-          {isError && (
-            <div className="alert alert-error">
-              <span className="alert-icon">⚠</span>
-              <span className="alert-content">
-                {error?.message || 'Could not retrieve results. Please check your details.'}
-              </span>
-            </div>
-          )}
-
-          <button type="submit" disabled={isPending} className="btn btn-primary btn-lg btn-block">
-            {isPending ? <><ButtonSpinner /> Searching…</> : 'View My Results'}
-          </button>
-        </form>
-      </div>
-
-      {results && (
-        <ResultsDisplay results={results} onDownload={downloadSlip} downloading={downloading} />
-      )}
-
-      {!results && (
-        <div className="text-center text-faint"
-          style={{ marginTop: 'var(--space-6)', fontSize: 'var(--text-sm)' }}>
-          <p>Results are available only after KNEC officially publishes them.</p>
-          <p>Having trouble? Contact your school examination officer.</p>
+    <div className="results-page">
+      <div className="container">
+        
+        {/* Page Header */}
+        <div className="results-page-header">
+          <h1>Check Your KCSE Results</h1>
+          <p className="text-muted">
+            Enter your examination details below. No login or account needed.
+          </p>
         </div>
-      )}
+
+        {/* Responsive Layout: Form + Results side by side on desktop */}
+        <div className="results-layout">
+          
+          {/* Left Column: Search Form */}
+          <div className="results-form-col">
+            <div className="results-form-card">
+              <form onSubmit={handleSubmit(onSubmit)} className="results-form">
+                
+                <div className="form-group">
+                  <label className="form-label form-label-required" htmlFor="index_number">
+                    Examination Index Number
+                  </label>
+                  <input
+                    id="index_number"
+                    {...register('index_number')}
+                    placeholder="e.g. 10234001023"
+                    className={`form-input form-input-mono${errors.index_number ? ' error' : ''}`}
+                    maxLength={11}
+                    autoComplete="off"
+                    inputMode="numeric"
+                  />
+                  {errors.index_number && (
+                    <p className="form-error">⚠ {errors.index_number.message}</p>
+                  )}
+                  <p className="form-hint">
+                    11-digit code from your KNEC admission card
+                  </p>
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label form-label-required" htmlFor="full_name">
+                    Full Name
+                  </label>
+                  <input
+                    id="full_name"
+                    {...register('full_name')}
+                    placeholder="e.g. GADAFI IMRAN AKIL"
+                    className={`form-input${errors.full_name ? ' error' : ''}`}
+                    autoComplete="off"
+                    style={{ textTransform: 'uppercase' }}
+                  />
+                  {errors.full_name && (
+                    <p className="form-error">⚠ {errors.full_name.message}</p>
+                  )}
+                  <p className="form-hint">As it appears on your birth certificate — all capitals</p>
+                </div>
+
+                {isError && (
+                  <div className="alert alert-error">
+                    <span className="alert-icon">⚠</span>
+                    <span className="alert-content">
+                      {error?.message || 'Could not retrieve results. Please check your details.'}
+                    </span>
+                  </div>
+                )}
+
+                <button type="submit" disabled={isPending} className="btn btn-primary btn-lg btn-block">
+                  {isPending ? <><ButtonSpinner /> Searching…</> : 'View My Results'}
+                </button>
+              </form>
+            </div>
+          </div>
+
+          {/* Right Column: Results Display */}
+          <div className="results-display-col">
+            {results ? (
+              <ResultsDisplay 
+                results={results} 
+                onDownload={downloadSlip} 
+                downloading={downloading} 
+              />
+            ) : (
+              <div className="results-placeholder">
+                <div className="results-placeholder-icon">
+                  <i className="bi bi-search"></i>
+                </div>
+                <p>Enter your index number and name above to view your results.</p>
+                <p className="text-faint text-sm">
+                  Results are available only after KNEC officially publishes them.
+                </p>
+              </div>
+            )}
+          </div>
+
+        </div>
+
+      </div>
     </div>
   )
 }
 
-// ── Results Display ───────────────────────────────────────────────────────────
+// ── Results Display Component ─────────────────────────────────────────────────
 
 function ResultsDisplay({ results, onDownload, downloading }) {
-  const { candidate, result, subjects, announcement } = results
+  const { candidate, result, subjects } = results
+
+  // Calculate total points (sum of all subject points, whole number only)
+  const totalPoints = subjects.reduce((sum, subject) => sum + (subject.points || 0), 0)
 
   return (
-    <div className="page-enter"
-      style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-6)' }}>
-
-      {announcement && (
-        <div className="alert alert-info">
-          <span className="alert-content" style={{ fontSize: 'var(--text-sm)' }}>
-            {announcement}
-          </span>
-        </div>
-      )}
-
-      {/* ── Candidate summary ────────────────────────────────────────────── */}
-      <div className="card card-flat">
-
-        {/* Header row: name + download */}
-        <div style={{
-          display:        'flex',
-          alignItems:     'flex-start',
-          justifyContent: 'space-between',
-          gap:            'var(--space-4)',
-          marginBottom:   'var(--space-5)',
-          paddingBottom:  'var(--space-5)',
-          borderBottom:   '1px solid var(--color-border)',
-        }}>
+    <div className="results-display">
+      
+      {/* Candidate Summary Card */}
+      <div className="results-candidate-card">
+        <div className="results-candidate-header">
           <div>
-            <h2 style={{ marginBottom: 'var(--space-1)', fontSize: 'var(--text-2xl)' }}>
-              {candidate.full_name}
-            </h2>
-            <div style={{
-              fontFamily:    'var(--font-mono)',
-              fontSize:      'var(--text-sm)',
-              color:         'var(--color-ink-muted)',
-              letterSpacing: '0.1em',
-            }}>
-              {formatIndexNumber(candidate.index_number)}
-            </div>
-            <div style={{
-              fontSize:   'var(--text-sm)',
-              color:      'var(--color-ink-muted)',
-              marginTop:  'var(--space-1)',
-            }}>
-              {candidate.school_name} &nbsp;·&nbsp; {candidate.county} County
-              &nbsp;·&nbsp; KCSE {candidate.year}
+            <h2 className="results-candidate-name">{candidate.full_name}</h2>
+            <div className="results-candidate-meta">
+              <span className="results-index-number">
+                {formatIndexNumber(candidate.index_number)}
+              </span>
+              <span className="results-school">
+                {candidate.school_name} · {candidate.county} County
+              </span>
+              <span className="results-year">KCSE {candidate.year}</span>
             </div>
           </div>
           <button
             onClick={() => onDownload(candidate.index_number)}
             disabled={downloading}
-            className="btn btn-outline btn-sm"
-            style={{ flexShrink: 0 }}
+            className="btn btn-outline btn-sm results-download-btn"
           >
-            {downloading ? <ButtonSpinner /> : '⬇'}&nbsp;Result Slip
+            <i className="bi bi-download"></i>
+            {downloading ? 'Downloading...' : 'Result Slip'}
           </button>
         </div>
 
-        {/* Mean grade row */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-8)', flexWrap: 'wrap' }}>
-
-          <div>
-            <div className="label" style={{ marginBottom: 'var(--space-1)' }}>Mean Grade</div>
-            <div className={`grade-display ${gradeColour(result.mean_grade)}`}
-              style={{ fontSize: 'var(--text-5xl)', lineHeight: 1 }}>
+        {/* Stats Row */}
+        <div className="results-stats">
+          <div className="results-stat">
+            <div className="results-stat-label">Mean Grade</div>
+            <div className={`results-stat-value ${gradeColour(result.mean_grade)}`}>
               {result.mean_grade}
             </div>
           </div>
-
-          <div style={{ display: 'flex', gap: 'var(--space-8)', flexWrap: 'wrap' }}>
-            <div>
-              <div className="label" style={{ marginBottom: 'var(--space-1)' }}>Mean Points</div>
-              <div style={{
-                fontFamily: 'var(--font-mono)',
-                fontSize:   'var(--text-2xl)',
-                fontWeight: 700,
-                color:      'var(--color-ink)',
-              }}>
-                {result.mean_points}
-              </div>
+          <div className="results-stat">
+            <div className="results-stat-label">Total Points</div>
+            <div className="results-stat-value">
+              {totalPoints}
             </div>
-            <div>
-              <div className="label" style={{ marginBottom: 'var(--space-1)' }}>Subjects Sat</div>
-              <div style={{
-                fontFamily: 'var(--font-mono)',
-                fontSize:   'var(--text-2xl)',
-                fontWeight: 700,
-                color:      'var(--color-ink)',
-              }}>
-                {result.subjects_sat}
-              </div>
-            </div>
-            {result.national_rank && (
-              <div>
-                <div className="label" style={{ marginBottom: 'var(--space-1)' }}>
-                  National Rank
-                </div>
-                <div style={{
-                  fontFamily: 'var(--font-mono)',
-                  fontSize:   'var(--text-2xl)',
-                  fontWeight: 700,
-                  color:      'var(--color-ink)',
-                }}>
-                  {ordinal(result.national_rank)}
-                  {result.school_rank && (
-                    <span style={{ fontSize: 'var(--text-sm)', color: 'var(--color-ink-muted)', marginLeft: 'var(--space-2)' }}>
-                      · {ordinal(result.school_rank)} in school
-                    </span>
-                  )}
-                </div>
-              </div>
-            )}
           </div>
-
+          <div className="results-stat">
+            <div className="results-stat-label">Subjects Sat</div>
+            <div className="results-stat-value">
+              {result.subjects_sat}
+            </div>
+          </div>
+          {result.national_rank && (
+            <div className="results-stat">
+              <div className="results-stat-label">National Rank</div>
+              <div className="results-stat-value">
+                {ordinal(result.national_rank)}
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
-      {/* ── Subject results table ────────────────────────────────────────── */}
-      <div className="card card-flat" style={{ padding: 0 }}>
-        <div style={{
-          padding:      'var(--space-4) var(--space-6)',
-          borderBottom: '1px solid var(--color-border)',
-        }}>
-          <h3 style={{ fontSize: 'var(--text-base)', fontWeight: 600 }}>Subject Results</h3>
-        </div>
-        <div className="table-wrapper" style={{ border: 'none', boxShadow: 'none', borderRadius: 0 }}>
-          <table className="table">
+      {/* Subjects Table - Minimal Design */}
+      <div className="results-subjects-card">
+        <h3 className="results-subjects-title">Subject Results</h3>
+        <div className="results-subjects-table-wrapper">
+          <table className="results-subjects-table">
             <thead>
               <tr>
-                <th>Code</th>
                 <th>Subject</th>
-                <th className="numeric">Marks</th>
-                <th className="text-center">Grade</th>
+                <th className="results-table-numeric">Marks</th>
+                <th className="results-table-center">Grade</th>
               </tr>
             </thead>
             <tbody>
-              {subjects.map((s) => (
-                <tr key={s.subject_code}>
-                  <td style={{ fontFamily: 'var(--font-mono)', color: 'var(--color-ink-faint)', fontSize: 'var(--text-sm)' }}>
-                    {s.subject_code}
+              {subjects.map((subject, idx) => (
+                <tr key={subject.subject_code}>
+                  <td className="results-subject-name">
+                    <span className="results-subject-code">{subject.subject_code}</span>
+                    {subject.subject_name}
                   </td>
-                  <td style={{ fontWeight: 500, color: 'var(--color-ink)' }}>
-                    {s.subject_name}
+                  <td className="results-table-numeric">
+                    {subject.moderated_marks !== undefined ? subject.moderated_marks : '—'}
                   </td>
-                  <td className="numeric">
-                    {s.moderated_marks !== undefined ? `${s.moderated_marks}/100` : '—'}
-                  </td>
-                  <td className="text-center">
-                    <span className={`grade-display ${gradeColour(s.grade)}`}
-                      style={{ fontSize: 'var(--text-lg)' }}>
-                      {s.grade}
+                  <td className="results-table-center">
+                    <span className={`results-grade-badge ${gradeColour(subject.grade)}`}>
+                      {subject.grade}
                     </span>
                   </td>
                 </tr>
               ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      {/* ── Grade scale ──────────────────────────────────────────────────── */}
-      <div className="card card-flat" style={{ padding: 0 }}>
-        <div style={{
-          padding:      'var(--space-4) var(--space-6)',
-          borderBottom: '1px solid var(--color-border)',
-        }}>
-          <h3 style={{ fontSize: 'var(--text-base)', fontWeight: 600 }}>KCSE Grading Scale</h3>
-        </div>
-        <div className="table-wrapper" style={{ border: 'none', boxShadow: 'none', borderRadius: 0 }}>
-          <table className="table table-sm">
-            <thead>
-              <tr>
-                {GRADE_SCALE.map(([g]) => (
-                  <th key={g} className="text-center" style={{ minWidth: '3rem' }}>{g}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                {GRADE_SCALE.map(([g, r]) => (
-                  <td key={g} className="text-center"
-                    style={{ fontSize: 'var(--text-xs)', color: 'var(--color-ink-muted)' }}>
-                    {r}
-                  </td>
-                ))}
-              </tr>
             </tbody>
           </table>
         </div>
